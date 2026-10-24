@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ATS Resume Analyser & Job Matcher</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-icon">⚡</div>
+        <div class="brand-text">
+          <h1>ATS Resume Analyser</h1>
+          <span class="badge ai-badge">AI Powered &bull; Node.js</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <div id="authStatus" class="auth-pill not-logged-in">
+          <span class="status-dot"></span>
+          <span id="userStatusText">Not Authenticated</span>
+        </div>
+        <button id="logoutBtn" class="btn btn-outline btn-sm hidden" onclick="handleLogout()">Logout</button>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="app-main">
+      <!-- Auth Section -->
+      <section id="authSection" class="card auth-card">
+        <div class="card-header">
+          <h2>🔐 JWT Authentication</h2>
+          <p>Login or create an account to access ATS resume analysis & job matching endpoints.</p>
+        </div>
+        <div class="auth-tabs">
+          <button class="tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
+          <button class="tab-btn" onclick="switchAuthTab('register')">Register New Account</button>
+        </div>
+
+        <form id="loginForm" class="auth-form" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="loginEmail" required placeholder="demo@example.com" value="demo@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" required placeholder="••••••••" value="Password123!">
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Sign In & Generate JWT</button>
+            <button type="button" class="btn btn-secondary" onclick="quickDemoLogin()">⚡ 1-Click Demo Login</button>
+          </div>
+        </form>
+
+        <form id="registerForm" class="auth-form hidden" onsubmit="handleRegister(event)">
+          <div class="form-group">
+            <label>Full Name</label>
+            <input type="text" id="regName" required placeholder="Jane Doe">
+          </div>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="regEmail" required placeholder="jane@example.com">
+          </div>
+          <div class="form-group">
+            <label>Password (min 6 chars)</label>
+            <input type="password" id="regPassword" required placeholder="••••••••" minlength="6">
+          </div>
+          <div class="form-group">
+            <label>Role</label>
+            <select id="regRole">
+              <option value="candidate">Candidate</option>
+              <option value="recruiter">Recruiter</option>
+            </select>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Create Account</button>
+          </div>
+        </form>
+
+        <div id="tokenInfo" class="token-container hidden">
+          <div class="token-header">
+            <span>Active Bearer Token:</span>
+            <button class="copy-btn" onclick="copyToken()">Copy Token</button>
+          </div>
+          <pre id="tokenDisplay"></pre>
+        </div>
+      </section>
+
+      <!-- App Workspace (Shown when authenticated) -->
+      <div id="workspace" class="workspace hidden">
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs">
+          <button class="nav-tab-btn active" onclick="switchView('upload')">📄 Upload & Analyse</button>
+          <button class="nav-tab-btn" onclick="switchView('matching')">🎯 Job Matching</button>
+          <button class="nav-tab-btn" onclick="switchView('history')">📂 Saved Resumes (<span id="resumeCount">0</span>)</button>
+        </nav>
+
+        <!-- VIEW 1: UPLOAD & ANALYSE -->
+        <div id="view-upload" class="view-panel active">
+          <div class="grid grid-2">
+            <!-- Left: File Upload -->
+            <div class="card">
+              <div class="card-header">
+                <h2>📤 Resume Upload</h2>
+                <p>Upload your resume in PDF (.pdf), Word (.docx), or Text (.txt) format.</p>
+              </div>
+
+              <div class="dropzone" id="dropzone" onclick="triggerFileInput()">
+                <div class="dropzone-icon">📁</div>
+                <div class="dropzone-title">Click to upload or drag & drop</div>
+                <div class="dropzone-sub">Supported formats: PDF, DOCX, DOC, TXT (Max 10MB)</div>
+                <div id="fileSelectedName" class="file-badge hidden"></div>
+                <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt" onchange="handleFileSelect(event)">
+              </div>
+
+              <div class="mt-4">
+                <button id="uploadBtn" class="btn btn-primary btn-block" disabled onclick="submitUpload()">
+                  <span>Upload & Scan Resume</span>
+                </button>
+              </div>
+
+              <div class="divider"><span>OR PASTE RAW TEXT</span></div>
+
+              <div class="form-group">
+                <label>Direct Resume Text Paste</label>
+                <textarea id="rawTextPaste" rows="5" placeholder="Paste full resume text here to analyze without uploading a file..."></textarea>
+              </div>
+              <button class="btn btn-secondary btn-block" onclick="submitRawTextAnalysis()">
+                Analyze Raw Text Directly
+              </button>
+            </div>
+
+            <!-- Right: Live Score & Summary Card -->
+            <div class="card score-card">
+              <div class="card-header">
+                <h2>📊 ATS Compatibility Score</h2>
+                <p>Comprehensive algorithmic scan against enterprise ATS parsing criteria.</p>
+              </div>
+
+              <div id="scorePlaceholder" class="placeholder-state">
+                <div class="placeholder-icon">📈</div>
+                <p>Upload a resume to generate your ATS score and breakdown.</p>
+              </div>
+
+              <div id="scoreContent" class="score-content hidden">
+                <div class="score-gauge-wrap">
+                  <div class="circular-chart" id="scoreChart">
+                    <svg viewBox="0 0 36 36" class="circle-svg">
+                      <path class="circle-bg"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                      <path class="circle-progress" id="circleProgress"
+                        stroke-dasharray="0, 100"
+                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                      />
+                    </svg>
+                    <div class="circle-text">
+                      <span id="scoreValue">0</span>
+                      <small>/100</small>
+                    </div>
+                  </div>
+                  <div class="score-meta">
+                    <h3 id="scoreGrade">Evaluating...</h3>
+                    <p id="scoreSummarySnippet">Awaiting input</p>
+                  </div>
+                </div>
+
+                <div class="breakdown-grid">
+                  <div class="breakdown-item">
+                    <div class="breakdown-label">
+                      <span>Contact Info</span>
+                      <span id="bContact">0/15</span>
+                    </div>
+                    <div class="progress-bar"><div id="pbContact" class="progress-fill"></div></div>
+                  </div>
+
+                  <div class="breakdown-item">
+                    <div class="breakdown-label">
+                      <span>Sections Found</span>
+                      <span id="bSection">0/20</span>
+                    </div>
+                    <div class="progress-bar"><div id="pbSection" class="progress-fill"></div></div>
+                  </div>
+
+                  <div class="breakdown-item">
+                    <div class="breakdown-label">
+                      <span>Skills Diversity</span>
+                      <span id="bSkill">0/25</span>
+                    </div>
+                    <div class="progress-bar"><div id="pbSkill" class="progress-fill"></div></div>
+                  </div>
+
+                  <div class="breakdown-item">
+                    <div class="breakdown-label">
+                      <span>Action Verbs & Impact</span>
+                      <span id="bImpact">0/20</span>
+                    </div>
+                    <div class="progress-bar"><div id="pbImpact" class="progress-fill"></div></div>
+                  </div>
+
+                  <div class="breakdown-item">
+                    <div class="breakdown-label">
+                      <span>Formatting & Length</span>
+                      <span id="bFormat">0/20</span>
+                    </div>
+                    <div class="progress-bar"><div id="pbFormat" class="progress-fill"></div></div>
+                  </div>
+                </div>
+
+                <div class="action-row mt-4">
+                  <button id="deepAiBtn" class="btn btn-primary btn-block" onclick="triggerDeepAiAnalysis()">
+                    ✨ Run Deep AI Feedback & Red Flag Audit
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Skills & Structure Section -->
+          <div id="skillsSection" class="card mt-4 hidden">
+            <div class="card-header">
+              <h2>🧠 Extracted Skills (<span id="totalSkillsCount">0</span> detected)</h2>
+              <p>Recognized technical competencies, frameworks, tools, and soft skills.</p>
+            </div>
+            <div class="skills-categorized" id="categorizedSkillsContainer"></div>
+          </div>
+
+          <!-- AI Feedback Deep Report -->
+          <div id="aiFeedbackSection" class="card mt-4 hidden">
+            <div class="card-header">
+              <div class="d-flex justify-between align-center">
+                <h2>🤖 Intelligent AI Feedback & Audit</h2>
+                <span id="aiModelBadge" class="badge">Google Gemini</span>
+              </div>
+              <p id="aiSummaryText" class="lead-text"></p>
+            </div>
+
+            <div class="grid grid-2 mt-3">
+              <div class="feedback-col strengths-col">
+                <h3>✅ ATS Strengths</h3>
+                <ul id="strengthsList" class="feedback-list"></ul>
+              </div>
+
+              <div class="feedback-col weaknesses-col">
+                <h3>⚠️ Critical Blockers & Weaknesses</h3>
+                <ul id="weaknessesList" class="feedback-list"></ul>
+              </div>
+            </div>
+
+            <div class="mt-4">
+              <h3>🎯 Google XYZ Quantifiable Bullet Rewrites</h3>
+              <p class="subtext">ATS and Recruiters prioritize the formula: <em>"Accomplished [X] as measured by [Y] by doing [Z]"</em>.</p>
+              <div id="xyzExamples" class="xyz-container"></div>
+            </div>
+
+            <div class="grid grid-2 mt-4">
+              <div>
+                <h3>📐 Formatting & Scanner Tips</h3>
+                <ul id="formattingTipsList" class="feedback-list"></ul>
+              </div>
+              <div>
+                <h3>💡 Recommended High-Value Keywords</h3>
+                <div id="recommendedKeywords" class="keyword-tags"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 2: JOB MATCHING -->
+        <div id="view-matching" class="view-panel">
+          <div class="grid grid-2">
+            <!-- Left: Job Description Input -->
+            <div class="card">
+              <div class="card-header">
+                <h2>🎯 Match Resume Against Job Description</h2>
+                <p>Compare candidate skills and qualifications directly with employer requirements.</p>
+              </div>
+
+              <div class="form-group">
+                <label>Target Job Title</label>
+                <input type="text" id="matchJobTitle" placeholder="e.g. Senior Full Stack Engineer">
+              </div>
+
+              <div class="form-group">
+                <label>Company Name (Optional)</label>
+                <input type="text" id="matchCompany" placeholder="e.g. Google, Stripe, Meta">
+              </div>
+
+              <div class="form-group">
+                <label>Job Description (JD)</label>
+                <textarea id="matchJdText" rows="10" placeholder="Paste the complete job description text here... Include required skills, responsibilities, and qualifications."></textarea>
+              </div>
+
+              <button class="btn btn-primary btn-block" onclick="submitJobMatch()">
+                🚀 Calculate Job Match Score & Keyword Gaps
+              </button>
+            </div>
+
+            <!-- Right: Match Results -->
+            <div class="card">
+              <div class="card-header">
+                <h2>📊 Match Analysis & Gap Report</h2>
+                <p>Identifies exact matched skills, missing keywords, and tailor-made advice.</p>
+              </div>
+
+              <div id="matchPlaceholder" class="placeholder-state">
+                <div class="placeholder-icon">🎯</div>
+                <p>Paste a job description on the left and click "Calculate" to see the match report.</p>
+              </div>
+
+              <div id="matchResultsContent" class="match-results hidden">
+                <div class="match-score-badge" id="matchScoreBadge">
+                  <span class="match-pct" id="matchPercentage">0%</span>
+                  <span class="match-rating" id="matchRatingText">Evaluating</span>
+                </div>
+
+                <p id="matchSummaryText" class="mt-2 lead-text"></p>
+
+                <div class="match-skills-breakdown mt-4">
+                  <div class="skill-group">
+                    <h4 class="text-success">✅ Matched Skills (<span id="matchedSkillsCount">0</span>)</h4>
+                    <div id="matchedSkillsTags" class="tag-cloud"></div>
+                  </div>
+
+                  <div class="skill-group mt-3">
+                    <h4 class="text-danger">❌ Missing Required Skills (<span id="missingSkillsCount">0</span>)</h4>
+                    <div id="missingSkillsTags" class="tag-cloud"></div>
+                  </div>
+
+                  <div class="skill-group mt-3">
+                    <h4 class="text-primary">✨ Bonus / Additional Skills</h4>
+                    <div id="additionalSkillsTags" class="tag-cloud"></div>
+                  </div>
+                </div>
+
+                <div class="recommendations-box mt-4">
+                  <h4>💡 Tailoring Recommendations to Beat the ATS</h4>
+                  <ul id="matchRecommendationsList" class="feedback-list"></ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VIEW 3: SAVED RESUMES HISTORY -->
+        <div id="view-history" class="view-panel">
+          <div class="card">
+            <div class="card-header">
+              <h2>📂 Saved Resumes & Match History</h2>
+              <p>Manage uploaded files, download original copies, or re-run analysis.</p>
+            </div>
+            <div id="resumesListContainer" class="history-list"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>ATS Resume Analyser &bull; Powered by Node.js, Express, Multer, PDF-Parse & Google Gemini AI</p>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
+

@@ -1,0 +1,39 @@
+ALEX MORGAN
+Email: alex.morgan@example.com | Phone: +1 (555) 234-5678
+LinkedIn: https://linkedin.com/in/alexmorgan-dev | GitHub: https://github.com/alexmorgan
+
+PROFESSIONAL SUMMARY
+Results-driven Full Stack Software Engineer with 5+ years of experience designing and scaling web applications, microservices, and distributed cloud systems. Specialized in Node.js, TypeScript, React, Docker, and PostgreSQL. Passionate about automated testing, CI/CD pipelines, and high-throughput RESTful API architecture.
+
+CORE TECHNICAL SKILLS
+- Programming Languages: JavaScript, TypeScript, Python, SQL, HTML5, CSS3
+- Frontend: React, Next.js, Redux, Tailwind CSS, Responsive Design
+- Backend: Node.js, Express, REST API, GraphQL, Microservices, JWT, WebSockets
+- Databases: PostgreSQL, MongoDB, Redis, Mongoose, Prisma
+- Cloud & DevOps: Docker, Kubernetes, AWS, GitHub Actions, CI/CD, Linux, Nginx
+- Testing & Methodologies: Jest, Unit Testing, Agile, Scrum, Git
+
+WORK EXPERIENCE
+
+Senior Software Engineer | TechNova Solutions
+June 2022 - Present
+- Architected and deployed 15+ RESTful microservices in Node.js and TypeScript, handling over 2,000,000 daily API requests with 99.98% service uptime.
+- Optimized PostgreSQL database queries and indexing strategies, decreasing average response latency by 42%.
+- Spearheaded migration to Docker containerization and Kubernetes orchestration on AWS, cutting cloud infrastructure costs by 28%.
+- Mentored a team of 6 software engineers and instituted rigorous code review standards and Jest unit testing, improving test coverage from 55% to 88%.
+
+Software Engineer | Apex Cloud Systems
+August 2019 - May 2022
+- Developed responsive customer-facing web dashboard utilizing React, Next.js, and Tailwind CSS, increasing monthly user retention by 22%.
+- Engineered asynchronous background job queue using Redis and BullMQ to process data ingestion pipelines.
+- Integrated third-party OAuth2 and Stripe payment webhooks, securely processing over $1,500,000 in monthly transactions.
+- Automated deployment workflows using GitHub Actions and AWS Lambda, reducing release cycle time from 3 hours to 12 minutes.
+
+EDUCATION
+Bachelor of Science in Computer Science
+University of California, Berkeley (2015 - 2019)
+
+CERTIFICATIONS
+- AWS Certified Solutions Architect - Associate
+- Certified Kubernetes Administrator (CKA)
+
